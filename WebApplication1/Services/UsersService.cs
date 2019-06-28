@@ -58,8 +58,8 @@ namespace Lab2.Services
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, user.Username.ToString()),
-                    new Claim(ClaimTypes.Role, user.UserRole.ToString())
+                    new Claim(ClaimTypes.Name, user.Username.ToString())
+                    //new Claim(ClaimTypes.Role, user.UserRole.ToString())
 
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
@@ -71,7 +71,7 @@ namespace Lab2.Services
                 Id = user.Id,
                 Username = user.Username,
                 Token = tokenHandler.WriteToken(token),
-                UserRole = user.UserRole
+                //UserRole = user.UserRole
                 
             };
 
@@ -105,20 +105,43 @@ namespace Lab2.Services
                 return errors; 
             }
 
-            context.Users.Add(new User
+            User userToAdd = new User
             {
                 LastName = registerInfo.LastName,
                 FirstName = registerInfo.FirstName,
                 Password = ComputeSha256Hash(registerInfo.Password),
                 Username = registerInfo.Username,
-                UserRole = UserRole.Regular,
+                UserUserRoles = new List<UserUserRole>(),
                 DateAdded = DateTime.Now
-               
+
+            };
+            var regularRole = context
+                              .UserRoles
+                              .FirstOrDefault(ur => ur.Name == UserRoles.Regular);
+
+            context.Users.Add(userToAdd);
+            //context.SaveChanges();
+
+            context.UserUserRoles.Add(new UserUserRole
+            {
+                User = userToAdd,
+                UserRole = regularRole,
+                StartTime = DateTime.Now,
+                EndTime = null
             });
+            
 
             context.SaveChanges();
             //return Authenticate(registerInfo.Username, registerInfo.Password);
             return null;
+        }
+
+        public UserRole GetCurrentUserRole(User user)
+        {
+            return user
+                .UserUserRoles
+                .FirstOrDefault(userUserRole => userUserRole.EndTime == null)
+                .UserRole;
         }
 
         public User GetCurrentUser(HttpContext httpContext)
@@ -126,7 +149,10 @@ namespace Lab2.Services
             string username = httpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
             //string accountType = httpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.AuthenticationMethod).Value;
             //return _context.Users.FirstOrDefault(u => u.Username == username && u.AccountType.ToString() == accountType);
-            return context.Users.FirstOrDefault(u => u.Username == username);
+            return context
+                .Users
+                .Include(u => u.UserUserRoles)
+                .FirstOrDefault(u => u.Username == username);
         }
 
         public IEnumerable<GetUserDto> GetAll()
@@ -137,7 +163,7 @@ namespace Lab2.Services
                 Id = user.Id,
                 Username = user.Username,
                 Token = null,
-                UserRole = user.UserRole
+               // UserRole = user.UserRole
 
             });
         }
@@ -156,7 +182,7 @@ namespace Lab2.Services
             User userToBeUpdated = GetUserById(id);
 
             user.Id = id;
-            user.UserRole = userToBeUpdated.UserRole; //UserRole Update not permitted
+            //user.UserRole = userToBeUpdated.UserRole; //UserRole Update not permitted
             var userPassRecieved = ComputeSha256Hash(user.Password);
 
             if ((user.Password == "") || (userPassRecieved == userToBeUpdated.Password))

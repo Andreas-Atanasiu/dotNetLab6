@@ -90,10 +90,10 @@ namespace Lab2.Controllers
 
             //if (currentUser.UserRole == UserRole.UserManager)
             //{
-                if (userToDelete.UserRole == UserRole.Admin)
-                {
-                    return Unauthorized();
-                }
+               // if (userToDelete.UserRole == UserRole.Admin)
+               // {
+               //     return Unauthorized();
+               // }
 
                 //int monthsDiff = DateTimeUtils.GetMonthDifference(currentUser.DateAdded, DateTime.Now);
                 //

@@ -19,6 +19,15 @@ namespace Lab2.Models
                 entity.HasIndex(u => u.Username).IsUnique();
             });
 
+            //       builder.Entity<UserUserRole>(entity =>
+            //     {
+            //         entity.HasIndex(u => new
+            //         {
+            //u.UserId,
+            //u.UserRoleId
+            //}).IsUnique();
+            //});
+
             builder.Entity<Comment>()
             .HasOne(e => e.Expense)
             .WithMany(c => c.Comments)
@@ -27,9 +36,12 @@ namespace Lab2.Models
             
         }
 
-        public DbSet<Expense> Expenses { get; set; }
-        public DbSet<Comment> Comments { get; set; }
-        public DbSet<User>    Users    { get; set; }
+        public DbSet<Expense>      Expenses      { get; set; }
+        public DbSet<Comment>      Comments      { get; set; }
+        public DbSet<User>         Users         { get; set; }
+        public DbSet<UserRole>     UserRoles     { get; set; }
+        public DbSet<UserUserRole> UserUserRoles { get; set; }
+
 
 
     }

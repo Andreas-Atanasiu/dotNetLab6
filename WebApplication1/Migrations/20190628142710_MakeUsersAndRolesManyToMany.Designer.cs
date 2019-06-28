@@ -4,14 +4,16 @@ using Lab2.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Lab2.Migrations
 {
     [DbContext(typeof(ExpensesDbContext))]
-    partial class ExpensesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190628142710_MakeUsersAndRolesManyToMany")]
+    partial class MakeUsersAndRolesManyToMany
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -106,7 +108,7 @@ namespace Lab2.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserRoles");
+                    b.ToTable("UserRole");
                 });
 
             modelBuilder.Entity("Lab2.Models.UserUserRole", b =>
@@ -114,10 +116,6 @@ namespace Lab2.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime?>("EndTime");
-
-                    b.Property<DateTime>("StartTime");
 
                     b.Property<int>("UserId");
 
@@ -129,7 +127,7 @@ namespace Lab2.Migrations
 
                     b.HasIndex("UserRoleId");
 
-                    b.ToTable("UserUserRoles");
+                    b.ToTable("UserUserRole");
                 });
 
             modelBuilder.Entity("Lab2.Models.Comment", b =>
