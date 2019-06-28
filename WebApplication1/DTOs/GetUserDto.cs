@@ -14,7 +14,7 @@ namespace Lab2.DTOs
         public string Username { get; set; }
         public string Token { get; set; }
         [EnumDataType(typeof(UserRole))]
-        public UserRole UserRole { get; set; }
+        public string UserRole { get; set; }
 
     }
 }

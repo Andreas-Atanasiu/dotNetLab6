@@ -111,5 +111,35 @@ namespace Lab2.Controllers
 
             return Ok(result);
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{userId}")]
+        public IActionResult GiveNewRoleToUser(int userId, [FromBody]RoleIdModel roleIdModel)
+        {
+            User user = _userService.GetUserById(userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            //userRoleModel.UserId = userId;
+
+            var errors = _userService.GiveNewRoleToUser(userId, roleIdModel);
+            if (errors != null)
+            {
+                return BadRequest(errors);
+            }
+
+            return Ok();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("{userId}/history")]
+        public IActionResult GetHistoryForUser(int userId)
+        {
+            var rolesForUser = _userService.GetHistoryForUser(userId);
+            return Ok(rolesForUser);
+        }
     }
 }

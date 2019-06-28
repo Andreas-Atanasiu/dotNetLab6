@@ -27,6 +27,14 @@ namespace Lab2.Services
         User GetUserById(int id);
         User UpdateUserNoRoleChange(int id, User user); //, User currentUser);
         User DeleteUser(int id); //, User currentUser);
+
+        //Lab 6
+        ErrorsCollection GiveNewRoleToUser(int userId, RoleIdModel roleIdModel);
+        IEnumerable<UserRolesForUserModel> GetHistoryForUser(int userId);
+        UserRole GetCurrentUserRole(User user);
+
+
+
     }
 
     public class UsersService : IUsersService
@@ -34,18 +42,22 @@ namespace Lab2.Services
         private ExpensesDbContext context;
         private readonly AppSettings appSettings;
         private IRegisterValidator registerValidator;
+        private IRoleValidator roleValidator;
 
-        public UsersService(ExpensesDbContext context, IRegisterValidator registerValidator, IOptions<AppSettings> appSettings)
+        public UsersService(ExpensesDbContext context, IRegisterValidator registerValidator, IOptions<AppSettings> appSettings, IRoleValidator roleValidator)
         {
             this.context = context;
             this.appSettings = appSettings.Value;
             this.registerValidator = registerValidator;
+            this.roleValidator = roleValidator;
         }
 
         public GetUserDto Authenticate(string username, string password)
         {
             var user = context.Users
-                .SingleOrDefault(x => x.Username == username && x.Password == ComputeSha256Hash(password));
+                       .Include(u => u.UserUserRoles)
+                       .ThenInclude(ur => ur.UserRole)
+                       .SingleOrDefault(x => x.Username == username && x.Password == ComputeSha256Hash(password));
 
             // return null if user not found
             if (user == null)
@@ -58,8 +70,8 @@ namespace Lab2.Services
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, user.Username.ToString())
-                    //new Claim(ClaimTypes.Role, user.UserRole.ToString())
+                    new Claim(ClaimTypes.Name, user.Username.ToString()),
+                    new Claim(ClaimTypes.Role, user.UserUserRoles.First().UserRole.Name)
 
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
@@ -72,6 +84,7 @@ namespace Lab2.Services
                 Username = user.Username,
                 Token = tokenHandler.WriteToken(token),
                 //UserRole = user.UserRole
+                UserRole = user.UserUserRoles.First().UserRole.Name
                 
             };
 
@@ -232,6 +245,49 @@ namespace Lab2.Services
 
             return existing;
         }
+
+        public ErrorsCollection GiveNewRoleToUser(int userId, RoleIdModel roleIdModel)
+        {
+            var errors = roleValidator.ValidateRole(roleIdModel, context);
+
+            if (errors != null)
+            {
+                return errors;
+            }
+
+            var now = DateTime.Now;
+
+            UserUserRole newUserRole = new UserUserRole
+            {
+                UserId = userId,
+                UserRoleId = roleIdModel.RoleId,
+                StartTime = now,
+                EndTime = null
+            };
+
+            UserUserRole userUserRoleForUser = context.UserUserRoles.FirstOrDefault(r => r.UserId == userId && r.EndTime == null);
+
+            userUserRoleForUser.EndTime = now;
+
+            context.UserUserRoles.Add(newUserRole);
+            context.SaveChanges();
+            return null;
+        }
+
+        public IEnumerable<UserRolesForUserModel> GetHistoryForUser(int userId)
+        {
+            return context.UserUserRoles
+                .Where(ur => ur.UserId == userId)
+                .Select(ur => new UserRolesForUserModel
+                {
+                    Role = ur.UserRole,
+                    StartTime = ur.StartTime,
+                    EndTime = ur.EndTime
+                })
+                .OrderBy(ur => ur.StartTime);
+        }
+
+
 
 
     }

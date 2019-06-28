@@ -102,6 +102,8 @@ namespace WebApplication1
             services.AddScoped<ICommentService, CommentsService>();
             services.AddScoped<IUsersService, UsersService>();
             services.AddScoped<IRegisterValidator, RegisterValidator>();
+            services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IRoleValidator, RoleValidator>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

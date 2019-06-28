@@ -1,5 +1,6 @@
 using Lab2.Models;
 using Lab2.Services;
+using Lab2.Validators;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
@@ -9,6 +10,8 @@ namespace Tests
 {
     class Tests
     {
+        private IRoleValidator roleValidator;
+
         private IOptions<AppSettings> config;
         [SetUp]
         public void Setup()
@@ -17,6 +20,9 @@ namespace Tests
             {
                 Secret = "adlkfadlkasfaskldffalaksfaDFLKAjdflkadjfaldkfjsd"
             });
+
+            roleValidator = new RoleValidator();
+
         }
 
         [Test]
@@ -26,9 +32,10 @@ namespace Tests
                 .UseInMemoryDatabase(databaseName: "ValidRegisterShouldCreateANewUser")
                 .Options;
 
+
             using (var context = new ExpensesDbContext(options))
             {
-                var usersService = new UsersService(context, null, config);
+                var usersService = new UsersService(context, null, config, roleValidator);
 
                var added = new Lab2.DTOs.PostUserDto
                 {
